@@ -1,0 +1,142 @@
+<app-main-layout>
+  <!-- Header -->
+  <header class="top-header">
+    <div class="header-left">
+      <h1>Dashboard</h1>
+      <p>Welcome back, {{ userName() }}!</p>
+    </div>
+    <div class="header-right">
+      <span class="badge">
+        <i class="fas fa-user-shield"></i>
+        {{ userRole() }}
+      </span>
+    </div>
+  </header>
+
+  <!-- Stats Cards -->
+  <section class="stats-grid">
+    <div class="stat-card" (click)="navigateToEmployees()">
+      <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+      <div class="stat-info">
+        <h3>{{ totalEmployees() }}</h3>
+        <p>Total Employees</p>
+        <span class="stat-change positive"><i class="fas fa-arrow-up"></i> 12%</span>
+      </div>
+    </div>
+
+    <div class="stat-card" (click)="navigateToProjects()">
+      <div class="stat-icon blue"><i class="fas fa-folder-open"></i></div>
+      <div class="stat-info">
+        <h3>{{ totalProjects() }}</h3>
+        <p>Active Projects</p>
+        <span class="stat-change positive"><i class="fas fa-arrow-up"></i> 8%</span>
+      </div>
+    </div>
+
+    <div class="stat-card" (click)="navigateToTasks()">
+      <div class="stat-icon green"><i class="fas fa-tasks"></i></div>
+      <div class="stat-info">
+        <h3>{{ totalTasks() }}</h3>
+        <p>Total Tasks</p>
+        <span class="stat-change positive"><i class="fas fa-arrow-up"></i> 5%</span>
+      </div>
+    </div>
+
+    <div class="stat-card" (click)="navigateToTasks()">
+      <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+      <div class="stat-info">
+        <h3>{{ pendingTasks() }}</h3>
+        <p>Pending Tasks</p>
+        <span class="stat-change negative"><i class="fas fa-arrow-down"></i> 3%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Charts Section -->
+  <section class="charts-grid">
+    <!-- Doughnut Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3><i class="fas fa-chart-pie"></i> Task Status</h3>
+        <span class="chart-badge">This Week</span>
+      </div>
+      <div class="chart-body">
+        <canvas
+          baseChart
+          [data]="doughnutChartData()"
+          [options]="doughnutChartOptions"
+          [type]="doughnutChartType"
+        ></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="legend-item"><span class="dot green"></span> Completed</span>
+        <span class="legend-item"><span class="dot blue"></span> In Progress</span>
+        <span class="legend-item"><span class="dot red"></span> Pending</span>
+      </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3><i class="fas fa-chart-bar"></i> Department Wise</h3>
+        <span class="chart-badge">Total</span>
+      </div>
+      <div class="chart-body">
+        <canvas
+          baseChart
+          [data]="barChartData()"
+          [options]="barChartOptions"
+          [type]="barChartType"
+        ></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="legend-item"><span class="dot purple"></span> Employees</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Activity -->
+  <section class="recent-section">
+    <!-- Recent Employees -->
+    <div class="recent-card">
+      <div class="card-header">
+        <h3><i class="fas fa-user-plus"></i> Recent Employees</h3>
+        <a routerLink="/employees" class="view-all">
+          View All <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+      <ul>
+        @for (emp of recentEmployees(); track emp.id) {
+          <li>
+            <div class="avatar-small">{{ getInitials(emp) }}</div>
+            <span>{{ getFullName(emp) }}</span>
+            <span class="time">{{ emp.designation }}</span>
+          </li>
+        } @empty {
+          <li class="empty-item">No recent employees</li>
+        }
+      </ul>
+    </div>
+
+    <!-- Active Projects -->
+    <div class="recent-card">
+      <div class="card-header">
+        <h3><i class="fas fa-project-diagram"></i> Active Projects</h3>
+        <a routerLink="/projects" class="view-all">
+          View All <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+      <ul>
+        @for (project of activeProjects(); track project.id) {
+          <li>
+            <i class="fas fa-circle" [style.color]="project.status === 'active' ? '#22c55e' : '#f59e0b'"></i>
+            <span>{{ project.name }}</span>
+            <span class="progress">{{ project.total_tasks || 0 }} tasks</span>
+          </li>
+        } @empty {
+          <li class="empty-item">No active projects</li>
+        }
+      </ul>
+    </div>
+  </section>
+</app-main-layout>

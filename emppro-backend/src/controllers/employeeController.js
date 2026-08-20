@@ -196,46 +196,82 @@ const updateEmployee = async (req, res) => {
       date_joined,
       is_active
     } = req.body;
-    
+
+    console.log('📝 Update Employee ID:', id);
+    console.log('📦 Received data:', req.body);
+
+    // Check if employee exists
     const [employees] = await pool.query(
       'SELECT e.id, e.user_id FROM employees e WHERE e.id = ?',
       [id]
     );
-    
+
     if (employees.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Employee not found'
       });
     }
-    
+
     const employee = employees[0];
-    
-    await pool.query(
-      `UPDATE employees 
-       SET first_name = ?, last_name = ?, phone = ?, 
-           designation = ?, department = ?, date_joined = ?
-       WHERE id = ?`,
-      [first_name, last_name, phone, designation, department, date_joined, id]
-    );
-    
-    if (is_active !== undefined) {
+
+    // 👇 FIX: Only update fields that are NOT undefined
+    const updateFields = [];
+    const updateValues = [];
+
+    if (first_name !== undefined && first_name !== null) {
+      updateFields.push('first_name = ?');
+      updateValues.push(first_name);
+    }
+    if (last_name !== undefined && last_name !== null) {
+      updateFields.push('last_name = ?');
+      updateValues.push(last_name);
+    }
+    if (phone !== undefined && phone !== null) {
+      updateFields.push('phone = ?');
+      updateValues.push(phone);
+    }
+    if (designation !== undefined && designation !== null) {
+      updateFields.push('designation = ?');
+      updateValues.push(designation);
+    }
+    if (department !== undefined && department !== null) {
+      updateFields.push('department = ?');
+      updateValues.push(department);
+    }
+    if (date_joined !== undefined && date_joined !== null) {
+      updateFields.push('date_joined = ?');
+      updateValues.push(date_joined);
+    }
+
+    // 👇 Only update employee fields if there are any
+    if (updateFields.length > 0) {
+      updateValues.push(id);
+      const query = `UPDATE employees SET ${updateFields.join(', ')} WHERE id = ?`;
+      console.log('🔄 Employee Update Query:', query);
+      console.log('📦 Employee Update Values:', updateValues);
+      await pool.query(query, updateValues);
+    }
+
+    // 👇 Update user status if provided
+    if (is_active !== undefined && is_active !== null) {
+      console.log('🔄 Updating is_active to:', is_active);
       await pool.query(
         'UPDATE users SET is_active = ? WHERE id = ?',
-        [is_active, employee.user_id]
+        [is_active === true || is_active === 1 ? 1 : 0, employee.user_id]
       );
     }
-    
+
     res.status(200).json({
       success: true,
       message: 'Employee updated successfully'
     });
-    
+
   } catch (error) {
-    console.error('Update employee error:', error);
+    console.error('❌ Update employee error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error: ' + error.message
     });
   }
 };

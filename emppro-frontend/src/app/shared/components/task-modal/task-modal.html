@@ -1,0 +1,115 @@
+@if (isOpen()) {
+  <div class="modal-overlay" (click)="onClose()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-left">
+          <div class="header-icon">
+            <i class="fas fa-plus-circle"></i>
+          </div>
+          <div>
+            <h2>Create New Task</h2>
+            <p>Add a new task to your project</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="onClose()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+          <!-- Title -->
+          <div class="form-group">
+            <label><i class="fas fa-heading"></i> Task Title <span class="required">*</span></label>
+            <input
+              type="text"
+              formControlName="title"
+              placeholder="Enter task title"
+              [class.is-invalid]="f['title'].invalid && f['title'].touched"
+            />
+            @if (f['title'].invalid && f['title'].touched) {
+              <span class="error">Title is required (min 3 characters)</span>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label><i class="fas fa-align-left"></i> Description <span class="required">*</span></label>
+            <textarea
+              formControlName="description"
+              placeholder="Enter task description"
+              rows="3"
+              [class.is-invalid]="f['description'].invalid && f['description'].touched"
+            ></textarea>
+            @if (f['description'].invalid && f['description'].touched) {
+              <span class="error">Description is required</span>
+            }
+          </div>
+
+          <!-- Project + Priority -->
+          <div class="form-row">
+            <div class="form-group">
+              <label><i class="fas fa-folder-open"></i> Project <span class="required">*</span></label>
+              <select
+                formControlName="project_id"
+                [class.is-invalid]="f['project_id'].invalid && f['project_id'].touched"
+              >
+                <option value="">Select Project</option>
+                @for (project of projects(); track project.id) {
+                  <option [value]="project.id">{{ project.name }}</option>
+                }
+              </select>
+              @if (f['project_id'].invalid && f['project_id'].touched) {
+                <span class="error">Please select a project</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-flag"></i> Priority</label>
+              <div class="priority-select">
+                @for (option of priorityOptions; track option.value) {
+                  <label class="priority-option">
+                    <input type="radio" formControlName="priority" [value]="option.value" />
+                    <span class="priority-label">
+                      <span class="priority-icon">{{ option.icon }}</span>
+                      {{ option.label }}
+                    </span>
+                  </label>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Due Date -->
+          <div class="form-group">
+            <label><i class="fas fa-calendar-alt"></i> Due Date <span class="required">*</span></label>
+            <input
+              type="date"
+              formControlName="due_date"
+              [class.is-invalid]="f['due_date'].invalid && f['due_date'].touched"
+            />
+            @if (f['due_date'].invalid && f['due_date'].touched) {
+              <span class="error">Due date is required</span>
+            }
+          </div>
+
+          <!-- Buttons -->
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="onClose()">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="submit" class="btn-submit" [disabled]="taskForm.invalid || isLoading()">
+              @if (isLoading()) {
+                <i class="fas fa-spinner fa-spin"></i> Creating...
+              } @else {
+                <i class="fas fa-plus"></i> Create Task
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

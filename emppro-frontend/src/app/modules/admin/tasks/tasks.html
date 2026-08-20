@@ -1,0 +1,187 @@
+<app-main-layout>
+  <div class="tasks-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1><i class="fas fa-tasks"></i> Tasks</h1>
+        <p>Manage all tasks across projects</p>
+      </div>
+      <button class="btn-add" (click)="openAddModal()">
+        <i class="fas fa-plus"></i> Add Task
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search tasks..." (input)="onSearch($event)" />
+      </div>
+      <div class="filter-group">
+        <select (change)="onStatusFilter($event)">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select (change)="onProjectFilter($event)">
+          <option value="">All Projects</option>
+          @for (project of projects(); track project.id) {
+            <option [value]="project.id">{{ project.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+    }
+
+    <!-- Table -->
+    @if (!loading()) {
+      <div class="table-wrapper">
+        <table class="tasks-table">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Project</th>
+              <th>Assigned To</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Due Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (tasks().length === 0) {
+              <tr><td colspan="7" class="empty-state"><i class="fas fa-tasks"></i> No tasks found</td></tr>
+            }
+            @for (task of tasks(); track task.id) {
+              <tr>
+                <td>
+                  <div class="task-title">{{ task.title }}</div>
+                  <div class="task-desc">{{ task.description | slice:0:50 }}{{ task.description?.length > 50 ? '...' : '' }}</div>
+                </td>
+                <td><span class="project-badge">{{ getProjectName(task.project_id) }}</span></td>
+                <td>{{ getEmployeeName(task.employee_id) }}</td>
+                <td><span class="priority-badge {{ getPriorityBadge(task.priority) }}">{{ task.priority }}</span></td>
+                <td>
+                  <select class="status-select {{ getStatusBadge(task.status) }}" (change)="updateStatus(task, $event)">
+                    <option value="pending" [selected]="task.status === 'pending'">Pending</option>
+                    <option value="in_progress" [selected]="task.status === 'in_progress'">In Progress</option>
+                    <option value="completed" [selected]="task.status === 'completed'">Completed</option>
+                  </select>
+                </td>
+                <td>{{ task.due_date | date:'MMM d, y' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn-edit" (click)="openEditModal(task)" title="Edit"><i class="fas fa-pen"></i></button>
+                    <button class="btn-delete" (click)="confirmDelete(task)" title="Delete"><i class="fas fa-trash"></i></button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination-bar">
+        <span>Showing {{ (currentPage() - 1) * pageSize() + 1 }} - {{ currentPage() * pageSize() > total() ? total() : currentPage() * pageSize() }} of {{ total() }}</span>
+        <div class="page-buttons">
+          <button (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 1"><i class="fas fa-chevron-left"></i></button>
+          @for (page of [].constructor(totalPages); track $index) {
+            <button (click)="changePage($index + 1)" [class.active]="currentPage() === $index + 1">{{ $index + 1 }}</button>
+          }
+          <button (click)="changePage(currentPage() + 1)" [disabled]="currentPage() === totalPages"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ========== MODAL ========== -->
+  @if (isModalOpen()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>
+            @if (modalMode() === 'add') { <i class="fas fa-plus-circle"></i> Add Task }
+            @else { <i class="fas fa-edit"></i> Edit Task }
+          </h2>
+          <button class="modal-close" (click)="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Task Title</label>
+              <input type="text" formControlName="title" placeholder="Enter task title" />
+              @if (f['title'].invalid && f['title'].touched) {
+                <span class="error">Title is required (min 3 chars)</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea formControlName="description" placeholder="Enter description" rows="3"></textarea>
+              @if (f['description'].invalid && f['description'].touched) {
+                <span class="error">Description is required</span>
+              }
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Project</label>
+                <select formControlName="project_id">
+                  <option value="">Select Project</option>
+                  @for (project of projects(); track project.id) {
+                    <option [value]="project.id">{{ project.name }}</option>
+                  }
+                </select>
+                @if (f['project_id'].invalid && f['project_id'].touched) {
+                  <span class="error">Project is required</span>
+                }
+              </div>
+              <div class="form-group">
+                <label>Assigned To</label>
+                <select formControlName="employee_id">
+                  <option value="">Select Employee</option>
+                  @for (emp of employees(); track emp.id) {
+                    <option [value]="emp.id">{{ emp.first_name }} {{ emp.last_name }}</option>
+                  }
+                </select>
+                @if (f['employee_id'].invalid && f['employee_id'].touched) {
+                  <span class="error">Employee is required</span>
+                }
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Priority</label>
+                <select formControlName="priority">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Due Date</label>
+                <input type="date" formControlName="due_date" />
+                @if (f['due_date'].invalid && f['due_date'].touched) {
+                  <span class="error">Due date is required</span>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="taskForm.invalid">
+              @if (modalMode() === 'add') { <i class="fas fa-plus"></i> Create }
+              @else { <i class="fas fa-save"></i> Update }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</app-main-layout>

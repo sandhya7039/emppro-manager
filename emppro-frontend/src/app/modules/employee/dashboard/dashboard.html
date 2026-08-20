@@ -1,0 +1,212 @@
+<app-main-layout>
+  <div class="employee-dashboard">
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="loading-overlay">
+        <div class="loader">
+          <div class="spinner"></div>
+          <p>Loading your dashboard...</p>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading()) {
+      <!-- Welcome Section -->
+      <div class="welcome-section">
+        <div class="welcome-content">
+          <div class="welcome-text">
+            <span class="greeting">👋 {{ getGreeting() }}!</span>
+            <h1>{{ userName() }}</h1>
+            <p>Here's your work summary for today</p>
+          </div>
+          <div class="welcome-badge">
+            <div class="avatar-circle">{{ userAvatar() }}</div>
+            <span>Employee</span>
+          </div>
+        </div>
+        <div class="welcome-date">
+          <i class="fas fa-calendar-alt"></i>
+          <span>{{ getTodayDate() }}</span>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      @if (isSearchOpen()) {
+        <div class="search-container">
+          <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              placeholder="Search your tasks..."
+              (input)="onSearch($event)"
+              [value]="searchQuery()"
+            />
+            <button class="search-close" (click)="toggleSearch()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">Total Tasks</span>
+            <h3>{{ totalTasks() }}</h3>
+            <span class="stat-trend up"><i class="fas fa-arrow-up"></i> {{ completionRate() }}%</span>
+          </div>
+          <div class="stat-progress"><div class="progress-bar" style="width: 100%"></div></div>
+        </div>
+
+        <div class="stat-card pending">
+          <div class="stat-icon"><i class="fas fa-clock"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">Pending</span>
+            <h3>{{ pendingTasks() }}</h3>
+            <span class="stat-trend down"><i class="fas fa-arrow-down"></i> {{ pendingTasks() > 0 ? 'Action needed' : 'All done!' }}</span>
+          </div>
+          <div class="stat-progress"><div class="progress-bar" [style.width.%]="getPercentage(pendingTasks(), totalTasks())"></div></div>
+        </div>
+
+        <div class="stat-card progress">
+          <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">In Progress</span>
+            <h3>{{ inProgressTasks() }}</h3>
+            <span class="stat-trend up"><i class="fas fa-arrow-up"></i> Keep going!</span>
+          </div>
+          <div class="stat-progress"><div class="progress-bar" [style.width.%]="getPercentage(inProgressTasks(), totalTasks())"></div></div>
+        </div>
+
+        <div class="stat-card completed">
+          <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">Completed</span>
+            <h3>{{ completedTasks() }}</h3>
+            <span class="stat-trend up"><i class="fas fa-arrow-up"></i> Great job! 🎉</span>
+          </div>
+          <div class="stat-progress"><div class="progress-bar" [style.width.%]="getPercentage(completedTasks(), totalTasks())"></div></div>
+        </div>
+      </div>
+
+      <!-- Recent Tasks & Projects -->
+      <div class="recent-grid">
+        <!-- Recent Tasks -->
+        <div class="recent-card tasks">
+          <div class="card-header">
+            <div class="header-left">
+              <i class="fas fa-tasks"></i>
+              <h3>My Recent Tasks</h3>
+              <span class="count-badge">{{ filteredTasks().length }}</span>
+            </div>
+            <a routerLink="/my-tasks" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="card-body">
+            @if (filteredTasks().length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <p>No tasks found</p>
+                <span>Try adjusting your search 🔍</span>
+              </div>
+            }
+            @for (task of filteredTasks(); track task.id) {
+              <div class="task-item" (click)="viewTaskDetail(task)">
+
+                <div class="task-status">
+                  <span class="status-dot {{ task.status || 'pending' }}"></span>
+                </div>
+                <div class="task-info">
+                  <span class="task-title">{{ task.title }}</span>
+                  <span class="task-project">
+                    <i class="fas fa-folder-open"></i>
+                    {{ task.project_name || 'No Project' }}
+                  </span>
+                </div>
+                <div class="task-meta">
+                  <span class="priority-badge {{ getPriorityBadge(task.priority) }}">
+                    {{ task.priority || 'medium' }}
+                  </span>
+                  <span class="status-badge {{ getStatusBadge(task.status) }}">
+                    {{ getStatusText(task.status) }}
+                  </span>
+                  <span class="task-date">
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ task.due_date | date:'MMM d' }}
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Recent Projects -->
+        <div class="recent-card projects">
+          <div class="card-header">
+            <div class="header-left">
+              <i class="fas fa-folder-open"></i>
+              <h3>My Projects</h3>
+              <span class="count-badge">{{ recentProjects().length }}</span>
+            </div>
+            <a routerLink="/my-projects" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="card-body">
+            @if (recentProjects().length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <p>No projects assigned yet</p>
+                <span>You'll be assigned soon! 🚀</span>
+              </div>
+            }
+            @for (project of recentProjects(); track project.id) {
+              <div class="project-item">
+                <div class="project-icon"><i class="fas fa-project-diagram"></i></div>
+                <div class="project-info">
+                  <span class="project-name">{{ project.name }}</span>
+                  <div class="project-meta">
+                    <span class="project-status">
+                      <span class="status-dot {{ project.status }}"></span>
+                      {{ project.status | titlecase }}
+                    </span>
+                    <span class="project-date">
+                      <i class="fas fa-calendar-alt"></i>
+                      {{ project.start_date | date:'MMM d' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="project-progress">
+                  <div class="progress-ring"><span>{{ getProjectProgress(project) }}%</span></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+   <!-- Quick Actions - Sirf 2 cards rakho -->
+<div class="quick-actions">
+  <div class="quick-card" (click)="toggleSearch()">
+    <i class="fas fa-search"></i>
+    <h4>Find Tasks</h4>
+    <p>Search through your assigned tasks</p>
+    <button class="btn-quick">Search</button>
+  </div>
+  <div class="quick-card" (click)="viewReports()">
+    <i class="fas fa-chart-line"></i>
+    <h4>View Reports</h4>
+    <p>See your performance analytics</p>
+    <button class="btn-quick">View</button>
+  </div>
+</div>
+    }
+  </div>
+</app-main-layout>
+
+<!-- Task Modal -->
+<app-task-modal
+  [isOpen]="isTaskModalOpen()"
+  mode="create"
+  (close)="isTaskModalOpen.set(false)"
+  (save)="handleTaskSave($event)"
+></app-task-modal>

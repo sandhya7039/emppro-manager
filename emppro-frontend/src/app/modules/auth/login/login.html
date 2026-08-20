@@ -1,0 +1,179 @@
+<div class="login-wrapper" [class.dark]="isDarkMode()">
+  <div class="login-container">
+    <!-- Left Side - Branding -->
+    <div class="login-brand">
+      <div class="brand-content">
+        <div class="brand-icon">
+          <i class="fas fa-cubes"></i>
+        </div>
+        <h1>EmpPro Manager</h1>
+        <p>Employee & Project Management System</p>
+        <div class="brand-features">
+          <div class="feature">
+            <i class="fas fa-check-circle"></i>
+            <span>Secure Authentication</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-check-circle"></i>
+            <span>Role-Based Access</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-check-circle"></i>
+            <span>Real-time Dashboard</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-check-circle"></i>
+            <span>Task Management</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side - Login Form -->
+    <div class="login-form-wrapper">
+      <div class="login-form-container">
+        <!-- Header -->
+        <div class="form-header">
+          <div class="logo-small">
+            <i class="fas fa-cubes"></i>
+            <span>EmpPro</span>
+          </div>
+          <button class="theme-toggle" (click)="toggleDarkMode()">
+            <i class="fas {{ isDarkMode() ? 'fa-sun' : 'fa-moon' }}"></i>
+          </button>
+        </div>
+
+        <div class="form-content">
+          <div class="welcome-text">
+            <h2>Welcome Back! 👋</h2>
+            <p>Sign in to your account to continue</p>
+          </div>
+
+          <!-- Error Message -->
+          @if (errorMessage()) {
+            <div class="error-alert">
+              <i class="fas fa-exclamation-circle"></i>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <!-- Form -->
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <!-- Email -->
+            <div class="form-group">
+              <label for="email">
+                <i class="fas fa-envelope"></i>
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                placeholder="Enter your email"
+                [class.is-invalid]="f['email'].invalid && f['email'].touched"
+                autocomplete="email"
+              />
+              @if (f['email'].invalid && f['email'].touched) {
+                <div class="error-text">
+                  @if (f['email'].errors?.['required']) {
+                    <span>Email is required</span>
+                  }
+                  @if (f['email'].errors?.['email']) {
+                    <span>Please enter a valid email</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <label for="password">
+                <i class="fas fa-lock"></i>
+                Password
+              </label>
+              <div class="password-wrapper">
+                <input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  id="password"
+                  formControlName="password"
+                  placeholder="Enter your password"
+                  [class.is-invalid]="f['password'].invalid && f['password'].touched"
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="togglePasswordVisibility()"
+                  tabindex="-1"
+                >
+                  <i class="fas {{ showPassword() ? 'fa-eye-slash' : 'fa-eye' }}"></i>
+                </button>
+              </div>
+              @if (f['password'].invalid && f['password'].touched) {
+                <div class="error-text">
+                  @if (f['password'].errors?.['required']) {
+                    <span>Password is required</span>
+                  }
+                  @if (f['password'].errors?.['minlength']) {
+                    <span>Password must be at least 6 characters</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="btn-login"
+              [disabled]="isLoading() || loginForm.invalid"
+            >
+              @if (!isLoading()) {
+                <span>Sign In</span>
+                <i class="fas fa-arrow-right"></i>
+              } @else {
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Signing in...</span>
+              }
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <!-- <div class="divider">
+            <span>Demo Credentials</span>
+          </div> -->
+
+          <!-- Demo Credentials -->
+          <!-- <div class="demo-credentials">
+            <div class="demo-card admin" (click)="loginForm.patchValue({ email: adminEmail, password: adminPassword })">
+              <div class="demo-role">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin</span>
+              </div>
+              <div class="demo-details">
+                <span class="demo-email">{{ adminEmail }}</span>
+                <span class="demo-pass">{{ adminPassword }}</span>
+              </div>
+              <span class="demo-click">Click to fill</span>
+            </div>
+            <div class="demo-card employee" (click)="loginForm.patchValue({ email: employeeEmail, password: employeePassword })">
+              <div class="demo-role">
+                <i class="fas fa-user"></i>
+                <span>Employee</span>
+              </div>
+              <div class="demo-details">
+                <span class="demo-email">{{ employeeEmail }}</span>
+                <span class="demo-pass">{{ employeePassword }}</span>
+              </div>
+              <span class="demo-click">Click to fill</span>
+            </div>
+          </div> -->
+
+          <!-- Footer -->
+          <div class="form-footer">
+            <p>Built with ❤️ by Sandhya Prajapati</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

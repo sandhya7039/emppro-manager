@@ -1,0 +1,63 @@
+<aside class="sidebar">
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <div class="logo-icon">
+      <i class="fas fa-cubes"></i>
+    </div>
+    <div class="logo-text">
+      <h2>EmpPro</h2>
+      <span>Manager</span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    @if (isAdmin()) {
+      <!-- Admin Links -->
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <i class="fas fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a routerLink="/employees" routerLinkActive="active">
+        <i class="fas fa-users"></i>
+        <span>Employees</span>
+      </a>
+
+      <a routerLink="/projects" routerLinkActive="active">
+        <i class="fas fa-folder-open"></i>
+        <span>Projects</span>
+      </a>
+
+      <a routerLink="/tasks" routerLinkActive="active">
+        <i class="fas fa-tasks"></i>
+        <span>Tasks</span>
+      </a>
+    }
+
+   @if (isEmployee()) {
+  <a routerLink="/my-dashboard" routerLinkActive="active">
+    <i class="fas fa-chart-pie"></i>
+    <span>Dashboard</span>
+  </a>
+
+  <a routerLink="/my-projects" routerLinkActive="active">
+    <i class="fas fa-folder-open"></i>
+    <span>My Projects</span>
+  </a>
+
+  <a routerLink="/my-tasks" routerLinkActive="active">
+    <i class="fas fa-tasks"></i>
+    <span>My Tasks</span>
+  </a>
+}
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <button (click)="logout()" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </button>
+  </div>
+</aside>

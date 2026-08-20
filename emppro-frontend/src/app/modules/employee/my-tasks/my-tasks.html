@@ -1,0 +1,93 @@
+<app-main-layout>
+  <div class="my-tasks-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1><i class="fas fa-tasks"></i> My Tasks</h1>
+        <p>View and update your assigned tasks</p>
+      </div>
+      <button class="btn-refresh" (click)="refresh()" title="Refresh">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-wrapper">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search tasks..." 
+          (input)="onSearch($event)" 
+          [value]="searchTerm()"
+        />
+      </div>
+      <select (change)="onFilterChange($event)">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading your tasks...</span>
+      </div>
+    }
+
+    <!-- Tasks List -->
+    @if (!loading()) {
+      <div class="tasks-list">
+        @if (filteredTasks.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-check-circle"></i>
+            <h3>No Tasks Found</h3>
+            <p>You have no tasks assigned.</p>
+          </div>
+        }
+        @for (task of filteredTasks; track task.id) {
+          <div class="task-card">
+            <!-- Task Info -->
+            <div class="task-info">
+              <div class="task-title-section">
+                <span class="status-dot {{ task.status || 'pending' }}"></span>
+                <h3>{{ task.title }}</h3>
+              </div>
+              <p class="task-desc">{{ task.description || 'No description' }}</p>
+              <div class="task-meta">
+                <span class="project-name">
+                  <i class="fas fa-folder-open"></i> 
+                  {{ task.project_name || 'No Project' }}
+                </span>
+                <span class="due-date">
+                  <i class="fas fa-calendar-alt"></i> 
+                  {{ task.due_date | date:'MMM d, y' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Badges + Status -->
+            <div class="task-actions">
+              <div class="task-badges">
+                <span class="priority-badge {{ getPriorityBadge(task.priority) }}">
+                  {{ task.priority || 'medium' }}
+                </span>
+                <span class="status-badge {{ getStatusBadge(task.status) }}">
+                  {{ getStatusText(task.status) }}
+                </span>
+              </div>
+              <select class="status-select" (change)="updateStatus(task, $event)">
+                <option value="pending" [selected]="task.status === 'pending'">Pending</option>
+                <option value="in_progress" [selected]="task.status === 'in_progress'">In Progress</option>
+                <option value="completed" [selected]="task.status === 'completed'">Completed</option>
+              </select>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</app-main-layout>

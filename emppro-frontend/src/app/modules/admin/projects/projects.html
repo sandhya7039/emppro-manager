@@ -1,0 +1,197 @@
+<app-main-layout>
+  <div class="projects-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1><i class="fas fa-folder-open"></i> Projects</h1>
+        <p>Manage your projects and team assignments</p>
+      </div>
+      <button class="btn-add" (click)="openAddModal()">
+        <i class="fas fa-plus"></i> Add Project
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search projects..." (input)="onSearch($event)" />
+      </div>
+      <div class="filter-group">
+        <select (change)="onStatusFilter($event)">
+          <option value="">All Status</option>
+          <option value="planned">Planned</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="on-hold">On Hold</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+    }
+
+    <!-- Projects Grid -->
+    @if (!loading()) {
+      <div class="projects-grid">
+        @if (projects().length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-folder-open"></i>
+            <h3>No Projects Found</h3>
+            <p>Create your first project to get started</p>
+          </div>
+        }
+        @for (project of projects(); track project.id) {
+          <div class="project-card">
+            <div class="card-header">
+              <div class="project-status">
+                <span class="status-badge {{ getStatusBadge(project.status) }}">
+                  {{ getStatusText(project.status) }}
+                </span>
+              </div>
+              <div class="card-actions">
+                <button class="btn-assign" (click)="openAssignModal(project)" title="Assign Employees">
+                  <i class="fas fa-user-plus"></i>
+                </button>
+                <button class="btn-edit" (click)="openEditModal(project)" title="Edit">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-delete" (click)="confirmDelete(project)" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <h3>{{ project.name }}</h3>
+              <p class="description">{{ project.description }}</p>
+              <div class="project-meta">
+                <span><i class="fas fa-calendar-alt"></i> {{ project.start_date | date:'MMM d, y' }}</span>
+                <span><i class="fas fa-users"></i> {{ getEmployeeCount(project) }} Employees</span>
+                <span><i class="fas fa-tasks"></i> {{ project.total_tasks || 0 }} Tasks</span>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="project.total_tasks && project.total_tasks > 0 ? (project.total_tasks / (project.total_tasks + 1)) * 100 : 0"></div>
+              </div>
+              <span>Progress</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination-bar">
+        <span>Showing {{ (currentPage() - 1) * pageSize() + 1 }} - {{ currentPage() * pageSize() > total() ? total() : currentPage() * pageSize() }} of {{ total() }}</span>
+        <div class="page-buttons">
+          <button (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 1"><i class="fas fa-chevron-left"></i></button>
+          @for (page of [].constructor(totalPages); track $index) {
+            <button (click)="changePage($index + 1)" [class.active]="currentPage() === $index + 1">{{ $index + 1 }}</button>
+          }
+          <button (click)="changePage(currentPage() + 1)" [disabled]="currentPage() === totalPages"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ========== MODAL (Add/Edit) ========== -->
+  @if (isModalOpen() && modalMode() !== 'assign') {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>
+            @if (modalMode() === 'add') { <i class="fas fa-plus-circle"></i> Add Project }
+            @else { <i class="fas fa-edit"></i> Edit Project }
+          </h2>
+          <button class="modal-close" (click)="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Project Name</label>
+              <input type="text" formControlName="name" placeholder="Enter project name" />
+              @if (f['name'].invalid && f['name'].touched) {
+                <span class="error">Name is required (min 3 chars)</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea formControlName="description" placeholder="Enter description" rows="3"></textarea>
+              @if (f['description'].invalid && f['description'].touched) {
+                <span class="error">Description is required</span>
+              }
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" formControlName="start_date" />
+                @if (f['start_date'].invalid && f['start_date'].touched) {
+                  <span class="error">Required</span>
+                }
+              </div>
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" formControlName="end_date" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select formControlName="status">
+                <option value="planned">Planned</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="on-hold">On Hold</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="projectForm.invalid">
+              @if (modalMode() === 'add') { <i class="fas fa-plus"></i> Create }
+              @else { <i class="fas fa-save"></i> Update }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ========== ASSIGN MODAL ========== -->
+  @if (isModalOpen() && modalMode() === 'assign') {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2><i class="fas fa-user-plus"></i> Assign Employees</h2>
+          <button class="modal-close" (click)="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <p class="assign-subtitle">Assign employees to <strong>{{ selectedProject()?.name }}</strong></p>
+          <div class="employee-list">
+            @for (emp of employees(); track emp.id) {
+              <label class="employee-item">
+                <input type="checkbox" [checked]="isEmployeeSelected(emp.id)" (change)="toggleEmployeeSelection(emp.id)" />
+                <div class="employee-avatar">{{ emp.first_name[0] }}{{ emp.last_name[0] }}</div>
+                <div class="employee-details">
+                  <span class="emp-name">{{ emp.first_name }} {{ emp.last_name }}</span>
+                  <span class="emp-designation">{{ emp.designation }}</span>
+                </div>
+              </label>
+            } @empty {
+              <div class="empty-state-small">No employees available</div>
+            }
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button class="btn-submit" (click)="assignEmployees()">
+            <i class="fas fa-user-check"></i> Assign Selected
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</app-main-layout>

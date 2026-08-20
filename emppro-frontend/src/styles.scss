@@ -1,0 +1,72 @@
+/* Bootstrap */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Font Awesome */
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+/* Custom Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+}
+
+/* ========== SweetAlert2 Toast Customization ========== */
+.swal2-toast {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  padding: 12px 20px !important;
+}
+
+.swal2-toast .swal2-title {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: white !important;
+  margin: 0 !important;
+}
+
+.swal2-toast .swal2-icon {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  margin: 0 8px 0 0 !important;
+  border: none !important;
+}
+
+.swal2-toast .swal2-icon .swal2-icon-content {
+  font-size: 14px !important;
+  color: white !important;
+}
+
+.swal2-toast .swal2-timer-progress-bar {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ✅ Success - Green */
+.swal2-toast.swal2-success {
+  background: #22c55e !important;
+  border: none !important;
+}
+
+/* ✅ Error - Red */
+.swal2-toast.swal2-error {
+  background: #ef4444 !important;
+  border: none !important;
+}
+
+/* ✅ Warning - Orange */
+.swal2-toast.swal2-warning {
+  background: #f59e0b !important;
+  border: none !important;
+}
+
+/* ✅ Info - Blue */
+.swal2-toast.swal2-info {
+  background: #667eea !important;
+  border: none !important;
+}

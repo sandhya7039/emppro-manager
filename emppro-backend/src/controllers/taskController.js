@@ -251,7 +251,10 @@ const updateTaskStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+
+    console.log('📝 Update Status - Task ID:', id);
+    console.log('📦 New Status:', status);
+
     // Check if task exists
     const [tasks] = await pool.query(
       `SELECT t.*, e.user_id as assigned_user_id 
@@ -260,40 +263,45 @@ const updateTaskStatus = async (req, res) => {
        WHERE t.id = ?`,
       [id]
     );
-    
+
     if (tasks.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
       });
     }
-    
+
     const task = tasks[0];
-    
-    // Check authorization: Admin can update any task, Employee can update only their own
+
+    // Check authorization
     if (req.userRole === 'employee' && task.assigned_user_id !== req.userId) {
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to update this task'
       });
     }
-    
+
+    // Update status
     await pool.query(
       'UPDATE tasks SET status = ? WHERE id = ?',
       [status, id]
     );
-    
+
+    // 👇 Return the updated status in response
     res.status(200).json({
       success: true,
       message: 'Task status updated successfully',
-      data: { id, status }
+      data: {
+        id: parseInt(id),
+        status: status  // 👈 Send back the status
+      }
     });
-    
+
   } catch (error) {
-    console.error('Update task status error:', error);
+    console.error('❌ Update task status error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error: ' + error.message
     });
   }
 };

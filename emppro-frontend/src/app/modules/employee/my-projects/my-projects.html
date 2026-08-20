@@ -1,0 +1,105 @@
+<app-main-layout>
+  <div class="my-projects">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1><i class="fas fa-folder-open"></i> My Projects</h1>
+        <p>View all projects assigned to you</p>
+      </div>
+      <div class="header-right">
+        <span class="count-badge">{{ projects().length }} Projects</span>
+        <button class="btn-refresh" (click)="refresh()" title="Refresh">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrapper">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        placeholder="Search your projects..."
+        (input)="onSearch($event)"
+        [value]="searchTerm()"
+      />
+    </div>
+
+    <!-- Error -->
+    @if (error()) {
+      <div class="error-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ error() }}</p>
+        <button (click)="refresh()" class="btn-retry">Try Again</button>
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading your projects...</span>
+      </div>
+    }
+
+    <!-- Projects Grid -->
+    @if (!loading() && !error()) {
+      <div class="projects-grid">
+        @if (filteredProjects.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-folder-open"></i>
+            <h3>No Projects Assigned</h3>
+            <p>You haven't been assigned to any projects yet.</p>
+            <span>You'll be assigned soon! 🚀</span>
+          </div>
+        }
+
+        @for (project of filteredProjects; track project.id) {
+          <div class="project-card">
+            <div class="card-header">
+              <div class="project-status">
+                <span class="status-badge {{ getStatusBadge(project.status) }}">
+                  {{ getStatusText(project.status) }}
+                </span>
+              </div>
+              <div class="project-icon">
+                <i class="fas fa-project-diagram"></i>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <h3>{{ project.name }}</h3>
+              <p class="description">{{ project.description || 'No description available' }}</p>
+
+              <div class="project-meta">
+                <div class="meta-item">
+                  <i class="fas fa-calendar-alt"></i>
+                  <span>Started: {{ project.start_date | date:'MMM d, y' }}</span>
+                </div>
+                @if (project.end_date) {
+                  <div class="meta-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Ends: {{ project.end_date | date:'MMM d, y' }}</span>
+                  </div>
+                }
+                <div class="meta-item">
+                  <i class="fas fa-tasks"></i>
+                  <span>{{ project.total_tasks || 0 }} Tasks</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="progress-section">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="getProgress(project)"></div>
+                </div>
+                <span class="progress-label">{{ getProgress(project) }}% Complete</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</app-main-layout>
