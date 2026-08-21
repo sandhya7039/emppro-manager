@@ -12,12 +12,23 @@ app.use(express.urlencoded({ extended: true }));
 
 const pool = require('./src/config/db');
 
+// pool.getConnection()
+//   .then(() => {
+//     console.log('✅ Database connected successfully!');
+//   })
+//   .catch((err) => {
+//     console.error('❌ Database connection failed:', err.message);
+//   });
 pool.getConnection()
-  .then(() => {
+  .then((connection) => {
     console.log('✅ Database connected successfully!');
+    connection.release();
   })
   .catch((err) => {
-    console.error('❌ Database connection failed:', err.message);
+    console.error('❌ Database connection failed');
+    console.error('Code:', err.code);
+    console.error('Message:', err.message);
+    console.error(err);
   });
 
 // =====================
